@@ -5,6 +5,8 @@ from django.views.generic import ListView
 from django.core.mail import send_mail
 from BlogApp.forms import EmailSendForm
 from BlogApp.forms import CommentForm
+from taggit.models import Tag
+from django.db.models import Count
 # Create your views here.
 def post_list_view(request):
     post_list=Post.objects.all();
@@ -16,6 +18,9 @@ def post_detail_view(request, year,month,day,post):
         publish__year=year,
         publish__month=month,
         publish__day=day);
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.objects.filter(tags__in=post_tags_ids).exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', 'publish')[:4]
     comments = post.comments.filter(active=True)
     csubmit = False
     if request.method == 'POST':
@@ -28,10 +33,16 @@ def post_detail_view(request, year,month,day,post):
     else:
         form = CommentForm()
     return render(request, 'BlogApp/post_detail.html',
-                  {"post": post, 'form': form, 'comments': comments, 'csubmit': csubmit})
+                  {"post": post, 'form': form, 'comments': comments, 'csubmit': csubmit,'similar_posts':similar_posts})
 
-def post_list_view(request):
+def post_list_view(request,tag_slug=None):
+    print("post_list_view with paginator")
     post_list=Post.objects.all()
+    tag = None
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        post_list = post_list.filter(tags__in=[tag])
+
     paginator=Paginator(post_list,1)
     page_number=request.GET.get('page')
     try:
@@ -40,7 +51,7 @@ def post_list_view(request):
         post_list = paginator.page(1)
     except EmptyPage:
         post_list = paginator.page(paginator.num_pages)
-    return render(request, 'BlogApp/post_list.html', {"post_list": post_list})
+    return render(request, 'BlogApp/post_list.html', {"post_list": post_list,'tag':tag})
 
 class PostListView(ListView):
     model=Postpaginate_by=3

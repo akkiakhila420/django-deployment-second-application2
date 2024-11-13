@@ -56,8 +56,7 @@ ROOT_URLCONF = 'BlogRealTimeProject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR/'BlogApp'/'templatetags' ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

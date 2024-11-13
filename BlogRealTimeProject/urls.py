@@ -24,6 +24,7 @@ urlpatterns = [
 
     #use-in-last
     path("<id>/share/", views.mail_send_view),
+    path('tag/<tag_slug>', views.post_list_view, name='post_list_by_tag_name'),
     path("bssample/",views.bs_sample_view),
 
     re_path('^.*$', views.post_list_view),
